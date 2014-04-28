@@ -2,6 +2,8 @@ package euler
 
 //Implement special mathematical functions
 
+//TriangleNumber gives the nth triangle number, i.e. the number of dots
+//composing a triangle with n dots on a side.
 func TriangleNumber(n int) int64 {
 	a := int64(n)
 	return a * (a + 1) / 2
