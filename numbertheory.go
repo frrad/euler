@@ -286,7 +286,10 @@ func PrimeCache(n int64) {
 	for i := int64(0); i < n; i++ {
 		if !composite[i] {
 			primeTable[m] = i
-			primepilist[i] = int64(m)
+
+			if int(i) < len(primepilist) {
+				primepilist[i] = int64(m)
+			}
 			m++
 		}
 	}
