@@ -317,7 +317,12 @@ func UInt64Exp(a, b uint64) uint64 {
 	return a * UInt64Exp(a, b-1)
 }
 
+//IntExp(a,b) return a^b. Essentially a wrapper for UInt64Exp.
 func IntExp(a int64, b int64) int64 {
+	if a == 0 {
+		return 0
+	}
+
 	if a > 0 {
 		return int64(UInt64Exp(uint64(a), uint64(b)))
 	}
