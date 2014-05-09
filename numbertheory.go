@@ -72,7 +72,8 @@ func SqrtMod(q int64, p int64) (sqrt1, sqrt2 int64, works bool) {
 	return 0, 0, false
 }
 
-//ax + by = gcd(a,b)
+//ExtendedEuclidean(a,b) returns x,y such that ax + by = gcd(a,b) computed via
+//extended Euclidean Algorithm.
 func ExtendedEuclidean(a, b int64) (x, y int64) {
 	x, lastx := int64(0), int64(1)
 	y, lasty := int64(1), int64(0)
@@ -81,6 +82,33 @@ func ExtendedEuclidean(a, b int64) (x, y int64) {
 		a, b = b, a%b
 		x, lastx = lastx-quotient*x, x
 		y, lasty = lasty-quotient*y, y
+	}
+	return lastx, lasty
+}
+
+func BigExtendedEuclidean(a, b *big.Int) (x, y *big.Int) {
+	x, lastx := big.NewInt(0), big.NewInt(1)
+	y, lasty := big.NewInt(1), big.NewInt(0)
+
+	zero := big.NewInt(0)
+	quotient := big.NewInt(0)
+	temp, temp2 := big.NewInt(0), big.NewInt(0)
+
+	for b.Cmp(zero) != 0 {
+		quotient.Div(a, b)
+
+		temp.Set(b)
+		b.Mod(a, b)
+		a.Set(temp)
+
+		temp.Set(x)
+		x.Sub(lastx, temp2.Mul(quotient, x))
+		lastx.Set(temp)
+
+		temp.Set(y)
+		y.Sub(lasty, temp2.Mul(quotient, y))
+		lasty.Set(temp)
+
 	}
 	return lastx, lasty
 }
@@ -124,13 +152,26 @@ func LCM(a, b int64) int64 {
 	return (a * b) / GCD(a, b)
 }
 
-//what's X^-1 mod n? (assuming of course x, n coprime)
+//InverseMod(x,n) returns the multiplicative inverse of x mod n, where x and n
+//are assumed to be coprime.
 func InverseMod(x, n int64) int64 {
 	ans, _ := ExtendedEuclidean(x, n)
+
+	ans %= n
+	if ans < 0 {
+		ans += n
+	}
+
+	return ans
+}
+
+func BigInverseMod(x, n *big.Int) *big.Int {
+	ans, _ := BigExtendedEuclidean(x, n)
 	return ans
 }
 
 //find a number equal to a mod n. N are assumed to be coprime
+//might return negative numbers?!
 func ChineseRemainder(a, n []int64) int64 {
 	N := int64(1)
 	for _, en := range n {
@@ -149,6 +190,34 @@ func ChineseRemainder(a, n []int64) int64 {
 
 	return ans
 
+}
+
+//find a number equal to a mod n. N are assumed to be coprime
+func BigChineseRemainder(a, n []int64) *big.Int {
+	N := big.NewInt(1)
+	temp := big.NewInt(0)
+	temp2 := big.NewInt(0)
+	summand := big.NewInt(0)
+
+	for _, en := range n {
+		N.Mul(N, temp.SetInt64(en))
+	}
+
+	ans := big.NewInt(0)
+	for i := range a {
+		summand.SetInt64(a[i])
+		summand.Mul(summand, N)
+		summand.Div(summand, temp.SetInt64(n[i]))
+
+		temp.SetInt64(n[i])
+		summand.Mul(summand, BigInverseMod(temp2.Div(N, temp), temp))
+
+		ans.Add(ans, summand)
+	}
+
+	ans.Mod(ans, N)
+
+	return ans
 }
 
 //an ordered list of prime factors, together with their degrees

@@ -161,6 +161,38 @@ func Choose(N, K int64) int64 {
 	return answer
 }
 
+//ChooseModP(n,k,p) returns n choose k modulo a prime p. Use Lucas' Theorem if
+//possible. If not, we compute using the usual (\prod_{i=1}^k \frac{n+1-i}{i})
+//factorial formula, where division is just multiplication by the inverse mod p.
+func ChooseModP(n, k, p int64) int64 {
+	ans := int64(1)
+
+	//The case where Lucas' Theorem applies
+	if n > p || k > p {
+		for n > 0 || k > 0 {
+			thisN, thisK := n%p, k%p
+			n /= p
+			k /= p
+			if thisN < thisK {
+				return 0
+			}
+
+			ans *= ChooseModP(thisN, thisK, p)
+			ans %= p
+		}
+		return ans
+	}
+
+	//The case where Lucas' Theorem does not apply
+	for i := int64(1); i <= k; i++ {
+		ans *= n + 1 - i
+		ans %= p
+		ans *= InverseMod(i, p)
+		ans %= p
+	}
+	return ans
+}
+
 //Permutation returns the nth permutation of a slice of integer
 //values. Undefined behavior for n > (len(list) factorial).
 func Permutation(n int, list []int) []int {
