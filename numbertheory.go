@@ -158,7 +158,7 @@ func InverseMod(x, n int64) int64 {
 	ans, _ := ExtendedEuclidean(x, n)
 
 	ans %= n
-	if ans < 0 {
+	for ans < 0 {
 		ans += n
 	}
 
@@ -180,15 +180,13 @@ func ChineseRemainder(a, n []int64) int64 {
 
 	ans := int64(0)
 	for i := range a {
-		summand := a[i]
-		summand *= N
-		summand /= n[i]
-		summand *= InverseMod(N/n[i], n[i])
-
+		extract := N / n[i]
+		summand := a[i] * extract
+		summand *= InverseMod(extract, n[i])
 		ans += summand
 	}
 
-	return ans
+	return ans % N
 
 }
 
